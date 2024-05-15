@@ -15,11 +15,11 @@ const timestamp = new Date().toISOString();
 
 //file
 const fs = require("fs");
-fs.writeFile(`${fileName}.txt`, timestamp, function (err) { console.log("success") });
+fs.writeFile(`./files/${fileName}.txt`, timestamp, function (err) { console.log("success") });
 
 //read file
 let files = [];
-fs.readdir("./", function (err, list) { files.push(list) })
+fs.readdir("./files", function (err, list) { files.push(list) })
 
 //api endpoint
 app.get("/", (req, res) => {

@@ -1,30 +1,41 @@
-const express = require("express")
+import express from 'express'
+import fs from 'fs'
+import {format} from 'date-fns'
+import path from 'path'
+
+const PORT = 4567
 const app = express()
 app.use(express.json())
 
-//current date and time
-const dt = Date.now();
-const date_obj = new Date(dt);
-const date = date_obj.getDate();
-const month = date_obj.getMonth() + 1;
-const year = date_obj.getFullYear();
-const time = date_obj.getTime();
-const fileName = year + "-" + month + "-" + date + "-" + time;
-//content
-const timestamp = new Date().toISOString();
+app.get('/',(req,res)=>{
+    try{
+        const today = format(new Date(), 'dd-MM-yyyy-HH-mm-ss')
+        const filePath = path.join('TimeStamp',`${today}.txt`)
 
-//file
-const fs = require("fs");
-fs.writeFile(`./files/${fileName}.txt`, timestamp, function (err) { console.log("success") });
+        fs.writeFileSync(filePath,today,'utf8')
+        const data = fs.readFileSync(filePath,'utf8')
 
-//read file
-let files = [];
-fs.readdir("./files", function (err, list) { files.push(list) })
+        res.status(200).send(data)
+    }
+    catch(error){
+        console.error(error)
+        res.status(500).send('Internal Server Error')
+    }
+})
 
-//api endpoint
-app.get("/", (req, res) => {
-    res.json({ Files: { files } });
-});
+app.get('/getTxtFiles',(req,res)=>{
+    const folderPath = 'TimeStamp'
 
-app.listen(5000);
-  
+    fs.readdir(folderPath,(err,files)=>{
+        if(err){
+            console.error(err)
+            res.status(500).send('an error occurred while listing the files from the directory')
+        }
+        else{
+            const textFiles = files.filter((file)=> path.extname(file)==='.txt')
+            res.status(200).json(textFiles)
+        }
+    })
+})
+
+app.listen(PORT,()=> console.log(`App is Listening on port ${PORT}`))
